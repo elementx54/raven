@@ -532,13 +532,15 @@ class DynamicEventTree(Grid):
         if self.branchCountOnLevel != 1:
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
-          condPbC = condPbC + endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
+          condPbC = condPbC #+ endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
+          #condPbC = condPbC + endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
           subGroup.add('happenedEvent',True)
         else:
           subGroup.add('happenedEvent',endInfo['parentNode'].get('happenedEvent'))
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['unchangedPb'])
-          condPbUn =  condPbUn + endInfo['branchChangedParams'][key]['unchangedConditionalPb']
+          #condPbUn =  condPbUn + endInfo['branchChangedParams'][key]['unchangedConditionalPb']
+          condPbUn =  condPbUn #+ endInfo['branchChangedParams'][key]['unchangedConditionalPb']
       subGroup.add('branchChangedParam',branchParams)
       # add conditional probability
       if self.branchCountOnLevel != 1:
