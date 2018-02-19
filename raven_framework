@@ -14,7 +14,7 @@ source $SCRIPT_DIR/scripts/setup_raven_libs
 # by default run in "opt" mode
 MODE='opt'
 # "ARGS" stores command line arguments not treated in this file (passed through)
-ARGS=""
+ARGS=()
 INPUT_FOUND=false
 # loop through arguments and look for those that are handled before Python is called
 for var in "$@"; do
@@ -26,8 +26,7 @@ for var in "$@"; do
     MODE='help'
   else
     # collect command line args (basically, skipping the -D or -O ARG)
-    # previous implementation was not working (fixed by alfoa)
-    ARGS="$ARGS $var"
+    ARGS+=("$var")
   fi
   # check if input file has been found
   # previous check was not safe since it was checking for the number of command line args,
@@ -48,11 +47,11 @@ fi
 case $MODE in
   'opt' )
     echo 'Running RAVEN in "opt" mode.'
-    python -O $SCRIPT_DIR/framework/Driver.py "$ARGS"
+    python -O $SCRIPT_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'dev' )
     echo 'Running RAVEN in "dev" mode.'
-    python $SCRIPT_DIR/framework/Driver.py "$ARGS"
+    python $SCRIPT_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'help' )
     echo ''
