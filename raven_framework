@@ -1,5 +1,4 @@
 #!/bin/bash
-
 SCRIPT_NAME=`readlink $0`
 if test -x "$SCRIPT_NAME";
 then
@@ -12,32 +11,39 @@ SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 source $SCRIPT_DIR/scripts/setup_raven_libs
 
 # set up run keywords
-# "ARGS" stores command line arguments not treated in this file (passed through)
-declare -a ARGS
 # by default run in "opt" mode
 MODE='opt'
+# "ARGS" stores command line arguments not treated in this file (passed through)
+ARGS=""
+INPUT_FOUND=false
 # loop through arguments and look for those that are handled before Python is called
 for var in "$@"; do
   if [ "$var" = '-D' ]; then
     # run in development mode (assertions not stripped)
     MODE='dev'
-    continue
   elif [ "$var" = 'help' ]; then
     # display "help" print
     MODE='help'
-    continue
+  else
+    # collect command line args (basically, skipping the -D or -O ARG)
+    # previous implementation was not working (fixed by alfoa)
+    ARGS="$ARGS $var"
   fi
-  # otherwise, pass through arguments
-  ARGS[${#ARGS[@]}]="$var"
+  # check if input file has been found
+  # previous check was not safe since it was checking for the number of command line args,
+  # but not the type of them (e.g. if the user ran "./raven_framework interfaceCheck" without
+  # input file, the check was giving a false negative (i.e. no error message). Fixed by alfoa
+  if  [[ $var == *xml ]] ;
+  then
+    INPUT_FOUND=true
+  fi
 done
-
 # if there's no file to run after parsing arguments, run "help" after warning of the problem.
-if [ ${#ARGS[@]} -eq 0 ]; then
+if [ "$INPUT_FOUND" = false ] ; then
   echo ''
   echo 'ERROR: No input file specified! See options below.'
   MODE='help'
 fi
-
 # run Driver.py based on the mode chosen
 case $MODE in
   'opt' )
