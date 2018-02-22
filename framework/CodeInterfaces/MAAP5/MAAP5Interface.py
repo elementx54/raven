@@ -408,8 +408,9 @@ class MAAP5(GenericCode):
       If we are driving the standard release of MAAP5, the outputs are in ascii
       In order to make them compatible with the current MAAP interface, they need to be converted in CSVs
       @ In, filename, str, the filename to convert
-      @ Out, None
+      @ Out, comverted, bool, True if converted
     """
+    converted = True
     outputMaapLines=open(filename,"r+").readlines()
     # check number of records
     nVariables = int(outputMaapLines.pop(0).replace("-",""))
@@ -437,6 +438,10 @@ class MAAP5(GenericCode):
         addedCounter = 0
     del outputMaapLines[0]
 
+    if 'TIME' not in headers:
+      # we do not create the csv
+      return False
+
     data = np.zeros((0,nVariables))
     addedCounter = 0
     tempValues = np.zeros(nVariables)
@@ -457,6 +462,7 @@ class MAAP5(GenericCode):
     csvOutputFile.write( ";".join(units)+"\n")
     np.savetxt(csvOutputFile, data,  delimiter=';')
     csvOutputFile.close()
+    return converted
 
 #######################
 
@@ -486,8 +492,8 @@ class MAAP5(GenericCode):
         raise Exception('Neither CSV nor ASCII outputs have been found in directory :' +str(workingDir))
       # convert the ASCII files into CSVs
       for filename in simulationFiles:
-        self._convertMAAP5asciiToCsv(filename)
-        csvSimulationFiles.append(filename+".csv")
+        if self._convertMAAP5asciiToCsv(filename):
+          csvSimulationFiles.append(filename+".csv")
     mergeCSV=csvU.csvUtilityClass(csvSimulationFiles,1,";",True)
     dataDict={}
     dataDict=mergeCSV.mergeCsvAndReturnOutput({'variablesToExpandFrom':['TIME'],'returnAsDict':True})
