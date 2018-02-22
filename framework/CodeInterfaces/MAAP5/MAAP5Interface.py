@@ -424,7 +424,7 @@ class MAAP5(GenericCode):
       line = output_maap_lines.pop(0)
       if len(line.strip()) == 0:
         break
-      variables = [var.strip() for var in line.split()]
+      variables = [var.strip() for var in line.split("   ") if len(var.strip()) > 0]
       if not storeUnits:
         headers[addedCounter:addedCounter+len(variables)] = variables[:]
       else:
