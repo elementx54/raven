@@ -428,6 +428,8 @@ class MAAP5(GenericCode):
         break
       variables = [var.strip()  for var in line.split("   ") if len(var.strip()) >0]
       if not storeUnits:
+        if 'TIMMID' in variables:
+          variables[variables.index('TIMMID')] = 'TIME'
         headers[addedCounter:addedCounter+len(variables)] = variables[:]
       addedCounter+=len(variables)
       if addedCounter == nVariables:
