@@ -91,12 +91,12 @@ class MAAP5(GenericCode):
     """
     self.samplerType=samplerType
     if 'DynamicEventTree' in samplerType:
-      if Kwargs['parentID'] == 'root': self.oriInput(oriInputFiles) #original input files are checked only the first time
+      if Kwargs['RAVEN_parentID'] == 'None': self.oriInput(oriInputFiles) #original input files are checked only the first time
       self.stopSimulation(currentInputFiles, Kwargs)
 ###########
-      if Kwargs['parentID'] != 'root':
+      if Kwargs['RAVEN_parentID'] != 'None':
         if self.printDebug : print('Kwargs',Kwargs)
-        if self.restartUseVar==True: self.restart(currentInputFiles, Kwargs['parentID'])
+        if self.restartUseVar==True: self.restart(currentInputFiles, Kwargs['RAVEN_parentID'])
 #        self.includeUpdate(currentInputFiles)
 ###########
         if len(self.multiBranchOccurred)>0: self.multiBranchMethod(currentInputFiles, Kwargs)
@@ -383,7 +383,7 @@ class MAAP5(GenericCode):
     fileobject.close()
     for line in lines:
       lineNumber=lineNumber+1
-      if 'C Branching '+str((self.branch[Kwargs['parentID']])[0]) in line: block=True
+      if 'C Branching '+str((self.branch[Kwargs['RAVEN_parentID']])[0]) in line: block=True
       if n==len(Kwargs['branchChangedParam']):
         block=False
         break
@@ -457,7 +457,7 @@ class MAAP5(GenericCode):
       In case of DET sampler, if a new branching condition is met, the
       method writes the xml for creating the two new branches.
       @ In, command, string, the command used to run the just ended job
-      @ In, output, string, the Output name root
+      @ In, output, string, the Output name None
       @ In, workingDir, string, current working dir
       @ Out, output, string, output csv file containing the variables of interest specified in the input
     """
@@ -733,7 +733,7 @@ class MAAP5(GenericCode):
     lineStopList=[lineStop]
     while lines[lineStopList[-1]+1].split(' ')[0]=='OR': lineStopList.append(lineStopList[-1]+1)
 ########################
-    if Kwargs['parentID']== 'root':
+    if Kwargs['RAVEN_parentID']== 'None':
       if self.stop!='mission_time':
         self.lineTimerComplete.append('TIMER '+str(self.stopTimer))
 ####################
@@ -744,7 +744,7 @@ class MAAP5(GenericCode):
       if all(i for i in found) == False:
 ####################
         raise IOError('All TIMER must be considered for the first simulation') #in the original input file all the timer must be mentioned
-    else: #Kwargs['parentID'] != 'root'
+    else: #Kwargs['RAVEN_parentID'] != 'None'
       parent=currentFolder[:-2]
       parents.append(parent)
       while len(parent.split('_')[-1])>2: #collect the name of all the parents, their corresponding timer need to be deleted from the stop condition (when the parents has already occurred)
@@ -801,7 +801,7 @@ class MAAP5(GenericCode):
     linesCurrent=fileobject.readlines()
     fileobject.close()
 
-    parentInput=str(inp).replace(str(Kwargs['prefix']),str(Kwargs['parentID']))
+    parentInput=str(inp).replace(str(Kwargs['prefix']),str(Kwargs['RAVEN_parentID']))
     fileobject = open(parentInput, "r")
     linesParent=fileobject.readlines()
     fileobject.close()
