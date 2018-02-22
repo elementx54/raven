@@ -403,7 +403,7 @@ class MAAP5(GenericCode):
 
 ########################
 
-  def _convertMAAP5asciiToCsv(filename):
+  def _convertMAAP5asciiToCsv(self,filename):
     """
       If we are driving the standard release of MAAP5, the outputs are in ascii
       In order to make them compatible with the current MAAP interface, they need to be converted in CSVs
