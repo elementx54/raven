@@ -403,6 +403,50 @@ class MAAP5(GenericCode):
 
 ########################
 
+  def _convertMAAP5asciiToCsv(filename):
+    """
+      If we are driving the standard release of MAAP5, the outputs are in ascii
+      In order to make them compatible with the current MAAP interface, they need to be converted in CSVs
+      @ In, filename, str, the filename to convert
+      @ Out, None
+    """
+    output_maap_lines=open(filename,"r+").readlines()
+    # check number of records
+    nVariables = int(output_maap_lines.pop(0).replace("-",""))
+    # remove 3 trailing rows
+    for _ in range(3):
+      del output_maap_lines[0]
+    headers = np.zeros((nVariables,),dtype=object)
+    units   = np.zeros((nVariables,),dtype=object)
+    storeUnits = False
+    addedCounter = 0
+    while True:
+      line = output_maap_lines.pop(0)
+      if len(line.strip()) == 0:
+        break
+      variables = [var.strip() for var in line.split()]
+      if not storeUnits:
+        headers[addedCounter:addedCounter+len(variables)] = variables[:]
+      else:
+        units[addedCounter:addedCounter+len(variables)] = variables[:]
+      addedCounter+=len(variables)
+      if addedCounter == nVariables:
+        storeUnits = True
+        addedCounter = 0
+    del output_maap_lines[0]
+
+    data = np.zeros((len(output_maap_lines),nVariables))
+    for rowCnt, line in enumerate(output_maap_lines):
+      data[rowCnt,:] = [float(elm) for elm in line.split()]
+
+    csv_output_file = open(filename+".csv","w+")
+    csv_output_file.write( ";".join(headers)+"\n")
+    csv_output_file.write( ";".join(units)+"\n")
+    np.savetxt(csv_output_file, data,  delimiter=';')
+    csv_output_file.close()
+
+#######################
+
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       finalizeCodeOutput checks MAAP csv files and looks for iEvents and
@@ -428,7 +472,9 @@ class MAAP5(GenericCode):
       if len(simulationFiles) == 0:
         raise Exception('Neither CSV nor ASCII outputs have been found in directory :' +str(workingDir))
       # convert the ASCII files into CSVs
-
+      for filename in simulationFiles:
+        self._convertMAAP5asciiToCsv(filename)
+        csvSimulationFiles.append(filename+".csv")
     mergeCSV=csvU.csvUtilityClass(csvSimulationFiles,1,";",True)
     dataDict={}
     dataDict=mergeCSV.mergeCsvAndReturnOutput({'variablesToExpandFrom':['TIME'],'returnAsDict':True})
