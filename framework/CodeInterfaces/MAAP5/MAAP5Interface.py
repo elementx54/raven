@@ -410,40 +410,51 @@ class MAAP5(GenericCode):
       @ In, filename, str, the filename to convert
       @ Out, None
     """
-    output_maap_lines=open(filename,"r+").readlines()
+    outputMaapLines=open(filename,"r+").readlines()
     # check number of records
-    nVariables = int(output_maap_lines.pop(0).replace("-",""))
+    nVariables = int(outputMaapLines.pop(0).replace("-",""))
     # remove 3 trailing rows
     for _ in range(3):
-      del output_maap_lines[0]
+      del outputMaapLines[0]
     headers = np.zeros((nVariables,),dtype=object)
     units   = np.zeros((nVariables,),dtype=object)
+    # we skip the units
+    units[:] = "n/a"
     storeUnits = False
     addedCounter = 0
     while True:
-      line = output_maap_lines.pop(0)
+      line = outputMaapLines.pop(0)
       if len(line.strip()) == 0:
         break
-      variables = [var.strip() for var in line.split("   ") if len(var.strip()) > 0]
+      variables = [var.strip()  for var in line.split("   ") if len(var.strip()) >0]
       if not storeUnits:
         headers[addedCounter:addedCounter+len(variables)] = variables[:]
-      else:
-        units[addedCounter:addedCounter+len(variables)] = variables[:]
       addedCounter+=len(variables)
       if addedCounter == nVariables:
         storeUnits = True
         addedCounter = 0
-    del output_maap_lines[0]
+    del outputMaapLines[0]
 
-    data = np.zeros((len(output_maap_lines),nVariables))
-    for rowCnt, line in enumerate(output_maap_lines):
-      data[rowCnt,:] = [float(elm) for elm in line.split()]
+    data = np.zeros((0,nVariables))
+    addedCounter = 0
+    tempValues = np.zeros(nVariables)
+    while True:
+      try:
+        line = outputMaapLines.pop(0)
+      except IndexError:
+        break
+      variables = [float(elm) for elm in line.split()]
+      tempValues[addedCounter:addedCounter+len(variables)] = variables[:]
+      addedCounter+=len(variables)
+      if addedCounter == nVariables:
+        data = np.vstack((data,tempValues))
+        addedCounter = 0
 
-    csv_output_file = open(filename+".csv","w+")
-    csv_output_file.write( ";".join(headers)+"\n")
-    csv_output_file.write( ";".join(units)+"\n")
-    np.savetxt(csv_output_file, data,  delimiter=';')
-    csv_output_file.close()
+    csvOutputFile = open(filename+".csv","w+")
+    csvOutputFile.write( ";".join(headers)+"\n")
+    csvOutputFile.write( ";".join(units)+"\n")
+    np.savetxt(csvOutputFile, data,  delimiter=';')
+    csvOutputFile.close()
 
 #######################
 
