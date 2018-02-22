@@ -411,6 +411,7 @@ class DynamicEventTree(Grid):
       self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
     self.inputInfo['prefix'                    ] = rname.encode()
     self.inputInfo['initiatorDistribution'     ] = []
+    self.inputInfo['triggeredVariable'         ] = b'None'
     self.inputInfo['PbThreshold'               ] = []
     self.inputInfo['ValueThreshold'            ] = []
     self.inputInfo['branchChangedParam'        ] = [b'None']
@@ -554,6 +555,7 @@ class DynamicEventTree(Grid):
       # add initiator distribution info, start time, etc.
 
       subGroup.add('initiatorDistribution',self.toBeSampled[endInfo['branchDist']])
+      subGroup.add('triggeredVariable',endInfo['branchDist'])
       subGroup.add('startTime', endInfo['parentNode'].get('endTime'))
       # initialize the endTime to be equal to the start one... It will modified at the end of this branch
       subGroup.add('endTime', endInfo['parentNode'].get('endTime'))
@@ -592,7 +594,8 @@ class DynamicEventTree(Grid):
       #  In this case there is not a probability threshold that needs to be added in the input
       #  for this particular distribution
       if not (branchedLevel[endInfo['branchDist']] >= len(self.branchProbabilities[endInfo['branchDist']])):
-        self.inputInfo['initiatorDistribution'] = [self.toBeSampled[endInfo['branchDist']]]
+        self.inputInfo['initiatorDistribution' ] = [self.toBeSampled[endInfo['branchDist']]]
+        self.inputInfo['triggeredVariable'     ] = endInfo['branchDist']
         self.inputInfo['PbThreshold'           ] = [self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
         self.inputInfo['ValueThreshold'        ] = [self.branchValues[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
       #  For the other distributions, we put the unbranched thresholds
@@ -603,6 +606,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['initiatorDistribution' ] = []
         self.inputInfo['PbThreshold'           ] = []
         self.inputInfo['ValueThreshold'        ] = []
+        self.inputInfo['triggeredVariable'     ] = b'None'
       # Add the unbranched thresholds
       for key in self.branchProbabilities.keys():
         if not (key in self.toBeSampled[endInfo['branchDist']]) and (branchedLevel[key] < len(self.branchProbabilities[key])):
@@ -914,4 +918,4 @@ class DynamicEventTree(Grid):
       self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     self.limit = sys.maxsize
     # add expected metadata
-    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding','conditionalPb'])
+    self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])
