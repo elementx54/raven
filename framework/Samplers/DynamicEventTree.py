@@ -369,19 +369,45 @@ class DynamicEventTree(Grid):
     #except? pass
     # Store the information in a dictionary that has as keywords the distributions that triggered
     for node in root:
-      if node.tag == "Distribution_trigger":
-        distName = node.attrib['name'].strip()
-        self.actualBranchInfo[distName] = {}
-        for child in node:
-          self.actualBranchInfo[distName][child.text.strip()] = {'varType':child.attrib['type'].strip(),'actualValue':child.attrib['actual_value'].strip().split(),'oldValue':child.attrib['old_value'].strip()}
-          if 'probability' in child.attrib:
-            asPb = child.attrib['probability'].strip().split()
-            self.actualBranchInfo[distName][child.text.strip()]['associatedProbability'] = []
-            #self.actualBranchInfo[distName][child.text.strip()]['associatedProbability'].append(float(asPb))
-            for index in range(len(asPb)):
-              self.actualBranchInfo[distName][child.text.strip()]['associatedProbability'].append(float(asPb[index]))
-      # we exit the loop here, because only one trigger at the time can be handled  right now
-      break
+      distTrigger = root.findall(".//Distribution_trigger")
+      if len(distTrigger) == 0:
+        self.raiseAnError(Exception, '"Distribution_trigger" node has not been found in file: '+str(filename))
+      elif len(distTrigger) > 1:
+        self.raiseAWarning ( 'More then one "Distribution_trigger" node have been found in file: '+str(filename)+'. Grepping the first one only!')
+      node = distTrigger[0]
+      distName = node.attrib['name'].strip()
+      self.actualBranchInfo[distName] = {}
+      variables = node.findall(".//Variable")
+      if len(variables) > 0:
+        for child in variables:
+          varName = child.text.strip()
+          varType = child.attrib.get('type','auxiliar').strip()
+          newValue = child.attrib.get('actual_value',None)
+          oldValue = child.attrib.get('old_value',None)
+          multiBranchPb = child.attrib.get('probability',None)
+          if newValue is None:
+            self.raiseAnError('"actual_value" is not present in the branch info file: '+str(filename)+'!')
+          if oldValue is None:
+            self.raiseAnError('"old_value" is not present in the branch info file: '+str(filename)+'!')
+          newValue = [elm.strip() for elm in newValue.split()]
+          if len(newValue) > 1:
+            if multiBranchPb is None:
+              self.raiseAnError(Exception, 'Multiple entries have been provided for "actual_value" (space separated value) but no "probability" attribute has been found!')
+            multiBranchPb = [elm.strip() for elm in multiBranchPb.split()]
+            if len(multiBranchPb) != len(newValue):
+              self.raiseAnError(Exception, 'Multiple entries have been provided for "actual_value" (space separated value) but the number of entries in "probability" attribute does not match!')
+            multiBranchPb = [utils.floatConversion(elm) for elm in multiBranchPb]
+            if None in multiBranchPb:
+              self.raiseAnError(ValueError, 'One of the entries in "probability" attribute can not be converted in float!')
+          if multiBranchPb is not None and len(newValue) == 1:
+            self.raiseAnError(Exception, 'Attribute "probability" has been inputted but no multi-branch detected.')
+          # store
+          self.actualBranchInfo[distName][varName] = {'varType':varType,'actualValue':newValue,'oldValue':oldValue.strip()}
+          if multiBranchPb is not None:
+            self.actualBranchInfo[distName][varName]['associatedProbability'] = multiBranchPb
+      else:
+        # not provided information regardind
+        self.actualBranchInfo[distName]['None'] = {'varType':'None','actualValue':'None','oldValue':'None'}
     # remove the file
     if self.removeXmlBranchInfo:
       os.remove(filename)

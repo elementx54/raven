@@ -174,6 +174,7 @@ class MAAP5(GenericCode):
       if 'C Branching ' in line:
         foundDET = True
         var=line.split()[-1]
+
         branching.append(var)
 
     if self.printDebug : print('DET sampled Variables =',self.DETsampledVars)
@@ -719,6 +720,9 @@ class MAAP5(GenericCode):
           #print ("####-222",line) #VR
           modifiedVar = line.split('=')[0].strip()
           modifiedValue = line.split('=')[1]
+          if ' ' in modifiedValue:
+            # there is a space (e.g. 0.1 S). We replace the whitespace with nothing
+            modifiedValue = modifiedValue.replace(" ","")
           DictVar[modifiedVar] = modifiedValue
         if ('END' in line) and block:
           block = False
