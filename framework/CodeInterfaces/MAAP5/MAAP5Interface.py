@@ -393,8 +393,10 @@ class MAAP5(GenericCode):
 #          if (var in line) and ('=' in line):
 #          if (var+' =' in line) or (var+'=' in line):
           if ((var+' =' in line) or (var+'=' in line)) and ('WHEN' not in line) and ('IF' not in line):
-            newLine=' '+str(var)+'='+str(Kwargs['branchChangedParamValue'][cont])+'\n'
-            if self.printDebug : print('Line correctly modified. New line is: ',newLine)
+            newLine =' '+str(var)+'='+str(Kwargs['branchChangedParamValue'][cont])+'\n'
+            newLine = newLine.replace("&$*"," ")
+            if self.printDebug : 
+              print('Line correctly modified. New line is: ',newLine)
             lines[lineNumber-1]=newLine
             fileobject = open(inp, "w")
             linesNewInput = "".join(lines)
@@ -722,7 +724,7 @@ class MAAP5(GenericCode):
           modifiedValue = line.split('=')[1]
           if ' ' in modifiedValue:
             # there is a space (e.g. 0.1 S). We replace the whitespace with nothing
-            modifiedValue = modifiedValue.replace(" ","")
+            modifiedValue = modifiedValue.replace(" ","&$*")
           DictVar[modifiedVar] = modifiedValue
         if ('END' in line) and block:
           block = False
