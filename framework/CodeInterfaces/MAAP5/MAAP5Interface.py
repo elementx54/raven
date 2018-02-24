@@ -22,14 +22,6 @@ import sys
 
 class MAAP5(GenericCode):
 
-#   def generateCommand(self,inputFiles,executable,clargs=None, fargs=None):
-#     returnCommand = GenericCode.generateCommand(self,inputFiles,executable,clargs, fargs)
-#     if self.debugCommand is not None:
-#       returnCommand2 = [('parallel',self.debugCommand)] , returnCommand[1]
-#       print(returnCommand2)
-#       returnCommand = returnCommand2
-#     return returnCommand
-
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
@@ -44,7 +36,6 @@ class MAAP5(GenericCode):
     self.tilastDict={} #{'folder_name':'tilast'} - this dictionary contains the last simulation time of each branch, this is necessary to define the correct restart time
     self.branch = {} #{'folder_name':['variable branch','variable value']} where variable branch is the variable sampled for the current branch e.g. {det_1:[timeloca, 200]}
     self.values = {} #{'folder_name':[['variable branch_1','variable value_1'],['variable branch_2','variable value_2']]} for each DET sampled variables
-#    self.printInterval = ''  #value of the print interval
     self.boolOutputVariables=[] #list of MAAP5 boolean variables of interest
     self.contOutputVariables=[] #list of MAAP5 continuous variables of interest
     self.debugCommand = None
@@ -144,7 +135,7 @@ class MAAP5(GenericCode):
 #          if digit.isdigit() or ('.' in digit): self.printInterval=float(digit)
       if 'C DET Sampled Variables' in line: #to distinguish between DET sampling  and Hybrid sampling (in case of Hybrid DET)
         DETVar = True
-      if 'END TIME' in line:
+      if 'END TIME' in line :#and not line.strip().startswith("C"):
         for digit in line.split():
           if digit.isdigit() or ('.' in digit): self.endTime=float(digit)
       if line.find('$RAVEN') != -1 and DETVar: #MAAP Variable for RAVEN is e.g. AFWOFF = $RAVEN-AFWOFF$ (string.find('x') = -1 when 'x' is not in the string)
@@ -395,7 +386,7 @@ class MAAP5(GenericCode):
           if ((var+' =' in line) or (var+'=' in line)) and ('WHEN' not in line) and ('IF' not in line):
             newLine =' '+str(var)+'='+str(Kwargs['branchChangedParamValue'][cont])+'\n'
             newLine = newLine.replace("&$*"," ")
-            if self.printDebug : 
+            if self.printDebug :
               print('Line correctly modified. New line is: ',newLine)
             lines[lineNumber-1]=newLine
             fileobject = open(inp, "w")
@@ -415,6 +406,8 @@ class MAAP5(GenericCode):
     """
     converted = True
     outputMaapLines=open(filename,"r+").readlines()
+    if len(outputMaapLines) == 0:
+      return False
     # check number of records
     nVariables = int(outputMaapLines.pop(0).replace("-",""))
     # remove 3 trailing rows
@@ -478,7 +471,7 @@ class MAAP5(GenericCode):
       (e.g. in RELAP5 would be the keyword "********")
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, failure, bool, True if the job is failed, False otherwise
+      @ Out, failure, bool, True if the job is fa:q:qiled, False otherwise
     """
     failure = False
     badWords  = ["Search for the word ERROR"]
@@ -563,7 +556,6 @@ class MAAP5(GenericCode):
         row.append(allVariableValues[j][i])
       csvwriter.writerow(row)
     outputCSVfile.close()
-    #os.chdir(workingDir) NEVER CHANGE THE WORKING DIRECTORY
 
     if 'DynamicEventTree' in self.samplerType:
       dictTimer={} #
@@ -614,20 +606,16 @@ class MAAP5(GenericCode):
       condition=False
       tilast=str(timeFloat[-1])
       self.tilastDict[currentFolder]=tilast
-      if self.stop.strip()=='mission_time': condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
-      else: condition=(event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
+      if self.stop.strip()=='mission_time':
+        if float(tilast)>=1000.0:
+          print("aaa")
+        condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
+      else:
+        condition=(event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
       if not condition:
         DictBranchCurrent='Dict'+str(self.branch[currentFolder][0])
         DictChanged=self.DictAllVars[DictBranchCurrent]
         self.branchXml(tilast, DictChanged,inp,dataDict)
-######################################################
-#      for param in self.paramDict.keys(): #based on the values assumed by the user defined variables in the current branch the corresponding dictionary is updated.
-#        listTimeFloat=list(timeFloat)
-#        [float(item) for item in listTimeFloat]
-#        timeValue=float(tilast)-float(self.printInterval) #parameter will be evaluated at the restarting time of the new branches. Thus at tilast of the current branch - print interval
-#        index=min(range(len(listTimeFloat)), key=lambda i: abs(listTimeFloat[i]-timeValue)) #since tilast-print interval does not necessarily correspond to a time in TIME vector, this way the closest time is taken
-#        self.paramDict[param]=str(dataDict[param][index])
-######################################################
 
   def branchXml(self, tilast,Dict,inputFile,dataDict):
     """
@@ -681,36 +669,7 @@ class MAAP5(GenericCode):
       detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
 
 ######################################################"
-#  def branchXml(self, tilast,Dict,inputFile,dataDict):
-#    """
-#      ONLY FOR DET SAMPLER!
-#      This method writes the xml files used by RAVEN to create the two branches at each stop condition reached
-#      @ In, tilast, string, end time of the current simulation run
-#      @ In, Dict, dict, dictionary containing the name and the value of the variables modified by the branch occurrence
-#      @ In, inputFile, string, name of the current input file
-#      @ In, dataDict, dict, dictionary containing the time evolution of the MAAP5 output variables contained in the csv output file
-#      @ Out, None
-#    """
-#    base=os.path.basename(inputFile).split('.')[0]#
-#    path=os.path.dirname(inputFile)
-#    filename=os.path.join(path,'out~'+base+"_actual_branch_info.xml")
-#    stopInfo={'end_time':tilast}
-#    listDict=[]
-#    variableBranch=''
-#    branchName=path.split('/')[-1]
-#    variableBranch=self.branch[str(branchName)][0]
-#    DictName='Dict'+str(variableBranch)
-#    dict1=self.DictAllVars[DictName]
-#    variables = list(dict1.keys())
-#    for var in variables: #e.g. for TIMELOCA variables are ABBN(1), ABBN(2), ABBN(3)
-#      if var==(self.branch[branchName])[0]: #ignore if the variable coincides with the trigger
-#        continue
-#      else:
-#        newValue=str(dict1[var])
-#        oldValue=str(dataDict[var][0])
-#        branch={'name':var, 'type':'auxiliar','old_value': oldValue, 'new_value': newValue.strip('\n')}
-#        listDict.append(branch)
-#      detU.writeXmlForDET(filename,variableBranch,listDict,stopInfo) #this function writes the xml file for DET
+
 
   def dictVariables(self,currentInp):
     """
