@@ -135,7 +135,7 @@ class MAAP5(GenericCode):
 #          if digit.isdigit() or ('.' in digit): self.printInterval=float(digit)
       if 'C DET Sampled Variables' in line: #to distinguish between DET sampling  and Hybrid sampling (in case of Hybrid DET)
         DETVar = True
-      if 'END TIME' in line :#and not line.strip().startswith("C"):
+      if 'END TIME' in line and not line.strip().startswith("C"):
         for digit in line.split():
           if digit.isdigit() or ('.' in digit): self.endTime=float(digit)
       if line.find('$RAVEN') != -1 and DETVar: #MAAP Variable for RAVEN is e.g. AFWOFF = $RAVEN-AFWOFF$ (string.find('x') = -1 when 'x' is not in the string)
