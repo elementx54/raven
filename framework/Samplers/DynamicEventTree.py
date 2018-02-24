@@ -932,15 +932,14 @@ class DynamicEventTree(Grid):
       self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
     for key in self.branchProbabilities.keys():
       self.branchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
-      # add the last forced branch (CDF=1)
-      value = self.distDict[key].ppf(1.0)
-      if value not in self.branchValues[key]:
-        self.branchValues[key].append( self.distDict[key].ppf(1.0) )
     for key in self.branchValues.keys():
       self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+
+    for key in self.branchValues.keys():
       # add the last forced branch (CDF=1)
       if 1.0 not in self.branchProbabilities[key]:
         self.branchProbabilities[key].append( 1.0 )
+        self.branchValues[key].append( self.distDict[key].ppf(1.0) )
     self.limit = sys.maxsize
     # add expected metadata
     self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])
