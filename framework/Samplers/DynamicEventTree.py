@@ -238,8 +238,6 @@ class DynamicEventTree(Grid):
     ## This appears to be the same, so I am switching to the model's workingDir
     ## since it is more directly available and less change to how data is stored
     ## in the args of a job instance. -- DPM 4/12/17
-    # jobWorkingDir = self.workingDir
-
     if not self.__readBranchInfo(jobObject.getMetadata()['outfile'], jobWorkingDir):
       parentNode.add('completedHistory', True)
       parentNode.add('endTime',self.actualEndTime)
@@ -270,7 +268,7 @@ class DynamicEventTree(Grid):
         # unchangedPb = probability (not conditional probability yet) that the event does not occur
         unchangedPb = 0.0
         try:
-          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
+          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha'
           for pb in xrange(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
             unchangedPb = unchangedPb + endInfo['branchChangedParams'][key]['associatedProbability'][pb]
         except KeyError:
@@ -558,13 +556,11 @@ class DynamicEventTree(Grid):
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['actualValue'][self.branchCountOnLevel-2])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
           condPbC = endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
-          #condPbC = condPbC + endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
           subGroup.add('happenedEvent',True)
         else:
           subGroup.add('happenedEvent',endInfo['parentNode'].get('happenedEvent'))
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['unchangedPb'])
-          #condPbUn =  condPbUn + endInfo['branchChangedParams'][key]['unchangedConditionalPb']
           condPbUn =  endInfo['branchChangedParams'][key]['unchangedConditionalPb']
       subGroup.add('branchChangedParam',branchParams)
       # add conditional probability
@@ -730,7 +726,6 @@ class DynamicEventTree(Grid):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, newerInput, list, list of new inputs
     """
-    #self._endJobRunnable = max([len(self.RunQueue['queue']),1])
     if self.counter <= 1:
       # If first branch input, create the queue
       self._createRunningQueue(model, myInput)
@@ -935,11 +930,17 @@ class DynamicEventTree(Grid):
       # Here it is stored all the info regarding the DET => we create the info for all the
       # branchings and we store them
       self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
-
     for key in self.branchProbabilities.keys():
       self.branchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
+      # add the last forced branch (CDF=1)
+      value = self.distDict[key].ppf(1.0)
+      if value not in self.branchValues[key]:
+        self.branchValues[key].append( self.distDict[key].ppf(1.0) )
     for key in self.branchValues.keys():
       self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+      # add the last forced branch (CDF=1)
+      if 1.0 not in self.branchProbabilities[key]:
+        self.branchProbabilities[key].append( 1.0 )
     self.limit = sys.maxsize
     # add expected metadata
     self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])

@@ -1,8 +1,22 @@
-'''
-Created on April 14, 2016
-@created: rychvale (EDF)
-@modified: picoco (The Ohio State University)
-'''
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+  MAAP5 code interface. This interface is able to drive MAAP5 calculations for any type of sampling strategy (Forward and DET-based)
+  Created on April 14, 2016
+  @author  : Valenting Rychkov - rychvale (EDF)
+  @modified: Claudia Picoco    - picoco   (The Ohio State University)
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -130,14 +144,12 @@ class MAAP5(GenericCode):
     branching=[]
 
     for line in lines:
-#      if 'PRINT INTERVAL' in line:
-#        for digit in line.split():
-#          if digit.isdigit() or ('.' in digit): self.printInterval=float(digit)
       if 'C DET Sampled Variables' in line: #to distinguish between DET sampling  and Hybrid sampling (in case of Hybrid DET)
         DETVar = True
       if 'END TIME' in line and not line.strip().startswith("C"):
         for digit in line.split():
-          if digit.isdigit() or ('.' in digit): self.endTime=float(digit)
+          if digit.isdigit() or ('.' in digit):
+            self.endTime=float(digit)
       if line.find('$RAVEN') != -1 and DETVar: #MAAP Variable for RAVEN is e.g. AFWOFF = $RAVEN-AFWOFF$ (string.find('x') = -1 when 'x' is not in the string)
         var = line.split('=')[0]
         if ':' in line:
@@ -165,7 +177,6 @@ class MAAP5(GenericCode):
       if 'C Branching ' in line:
         foundDET = True
         var=line.split()[-1]
-
         branching.append(var)
 
     if self.printDebug : print('DET sampled Variables =',self.DETsampledVars)
@@ -522,9 +533,11 @@ class MAAP5(GenericCode):
     contVariableEvolution=[] #here we'll store the time evolution of MAAP continous variables
     if len(self.contOutputVariables)>0:
       for variableName in self.contOutputVariables:
-        try: (dataDict[variableName])
-        except: raise IOError('define the variable within MAAP5 plotfil: ',variableName)
-        contVariableEvolution.append(dataDict[variableName])
+        try:
+          value = dataDict[variableName]
+        except KeyError:
+          raise IOError('Define the variable within MAAP5 plotfil: ',variableName)
+        contVariableEvolution.append(value)
 
       #here we'll read boolean variables and transform them into continous"""
       # if the discrete variables of interest are into the csv file:
