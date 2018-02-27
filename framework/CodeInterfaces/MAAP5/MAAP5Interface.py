@@ -142,8 +142,7 @@ class MAAP5(GenericCode):
     lines=fileobject.readlines()
     fileobject.close()
     branching=[]
-
-    for line in lines:
+    for cnt, line in enumerate(lines):
       if 'C DET Sampled Variables' in line: #to distinguish between DET sampling  and Hybrid sampling (in case of Hybrid DET)
         DETVar = True
       if 'END TIME' in line and not line.strip().startswith("C"):
@@ -178,6 +177,22 @@ class MAAP5(GenericCode):
         foundDET = True
         var=line.split()[-1]
         branching.append(var)
+        # check if TIM variables have been inputted
+        foundTIMgate = False
+        subCnt = 1
+        subLine = lines[cnt+subCnt]
+        while subLine.split()[0].strip() != 'END':
+          subCnt+=1
+          subLine = lines[cnt+subCnt]
+          if 'TIM' in subLine and "=" in subLine:
+            splitted = subLine.split("=")
+            digitTimer = splitted[0].replace("TIM","")
+            foundTIMgate = digitTimer.isdigit() and splitted[-1].strip().isdigit()
+            if abs(float(splitted[-1]) - 1.0) > 1e-6:
+              raise Exception('"TIM'+digitTimer.strip()+' variable must be set to 1.0 in the "C Branching" block!')
+        if not foundTIMgate:
+          raise Exception('TIM*** variable must be set in the "C Branching" block!')
+
 
     if self.printDebug : print('DET sampled Variables =',self.DETsampledVars)
     if self.printDebug : print('Hybrid sampled Variables =',self.HYBRIDsampledVars)
@@ -711,10 +726,7 @@ class MAAP5(GenericCode):
         if ('C Branching '+var) in line: #branching marker
           block = True
         #if ('=' in line) and block and not ('WHEN' or 'IF') in line: #there is a 'Branching block'
-        if ('IF' in line) or ('WHEN' in line):
-          #print ("####-111",line)
-          pass
-        elif ('=' in line) and block:
+        if ('=' in line) and block:
           #print ("####-222",line) #VR
           modifiedVar = line.split('=')[0].strip()
           modifiedValue = line.split('=')[1]
