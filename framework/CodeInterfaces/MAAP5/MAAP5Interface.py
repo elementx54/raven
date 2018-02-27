@@ -186,7 +186,7 @@ class MAAP5(GenericCode):
           subLine = lines[cnt+subCnt]
           if 'TIM' in subLine and "=" in subLine:
             splitted = subLine.split("=")
-            digitTimer = splitted[0].replace("TIM","")
+            digitTimer = splitted[0].replace("TIM","").strip()
             foundTIMgate = digitTimer.isdigit() and splitted[-1].strip().isdigit()
             if abs(float(splitted[-1]) - 1.0) > 1e-6:
               raise Exception('"TIM'+digitTimer.strip()+' variable must be set to 1.0 in the "C Branching" block!')
@@ -635,8 +635,6 @@ class MAAP5(GenericCode):
       tilast=str(timeFloat[-1])
       self.tilastDict[currentFolder]=tilast
       if self.stop.strip()=='mission_time':
-        if float(tilast)>=1000.0:
-          print("aaa")
         condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
       else:
         condition=(event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
@@ -726,7 +724,7 @@ class MAAP5(GenericCode):
         if ('C Branching '+var) in line: #branching marker
           block = True
         #if ('=' in line) and block and not ('WHEN' or 'IF') in line: #there is a 'Branching block'
-        if ('=' in line) and block:
+        if '=' in line and "WHEN" not in line and "IF" not in line and block:
           #print ("####-222",line) #VR
           modifiedVar = line.split('=')[0].strip()
           modifiedValue = line.split('=')[1]
