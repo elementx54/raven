@@ -123,6 +123,18 @@ class MAAP5(GenericCode):
       @ In, oriInputFiles, list, list of all the original input files
       @ Out, None
     """
+    def _isNumber(strNumber,dtype="float"):
+      """
+        Simple method to check if the strNumber is a number
+        @ In, strNumber, str, the string to check
+        @ In, dtype, str, the type (either int or float)
+        @ Out, _isNumber, bool, True if it is a number
+      """
+      try:
+        float(strNumber) if dtype == 'float' else int(strNumber)
+        return True
+      except ValueError:
+        return False
     self.lineTimerComplete=[] #list of all the timer (one for each DET sampled variables)
     self.DETsampledVars = [] #list of RAVEN DET sampled variables
     self.HYBRIDsampledVars = [] #list of RAVEN HYBRID sampled variables
@@ -147,7 +159,7 @@ class MAAP5(GenericCode):
         DETVar = True
       if 'END TIME' in line and not line.strip().startswith("C"):
         for digit in line.split():
-          if digit.isdigit() or ('.' in digit):
+          if _isNumber(digit):
             self.endTime=float(digit)
       if line.find('$RAVEN') != -1 and DETVar: #MAAP Variable for RAVEN is e.g. AFWOFF = $RAVEN-AFWOFF$ (string.find('x') = -1 when 'x' is not in the string)
         var = line.split('=')[0]
@@ -187,8 +199,8 @@ class MAAP5(GenericCode):
           if 'TIM' in subLine and "=" in subLine:
             splitted = subLine.split("=")
             digitTimer = splitted[0].replace("TIM","").strip()
-            foundTIMgate = digitTimer.isdigit() and splitted[-1].strip().isdigit()
-            if abs(float(splitted[-1]) - 1.0) > 1e-6:
+            foundTIMgate = _isNumber(digitTimer,'int') and _isNumber(splitted[-1].strip(),'float')
+            if _isNumber(splitted[-1].strip(),'float') and abs(float(splitted[-1]) - 1.0) > 1e-6:
               raise Exception('"TIM'+digitTimer.strip()+' variable must be set to 1.0 in the "C Branching" block!')
         if not foundTIMgate:
           raise Exception('TIM*** variable must be set in the "C Branching" block!')
@@ -591,12 +603,8 @@ class MAAP5(GenericCode):
         timer='TIM'+str(timer)
         try: (dataDict[timer])
         except: raise IOError('Please ensure that the timer is defined into the include file and then it is contained into MAAP5 plotfil: ',timer)
-        if 1.0 in dataDict[timer].tolist():
-          index=dataDict[timer].tolist().index(1.0)
-          timerActivation= timeFloat.tolist()[index]
-        else:
-          timerActivation=-1
-        dictTimer[timer]=timerActivation
+        index = np.nonzero(np.logical_and(dataDict[timer]>=0.99999, dataDict[timer]<=1.00001))
+        dictTimer[timer]= timeFloat[index[0][0]] if len(index[0]) > 0 else -1
 
       #
       #  NOTE THAT THIS ERROR CAN BE WRONG SINCE IT IS POSSIBLE (BRANCHES ON DEMAND) THAT TWO BRANCHES (OR MORE) HAPPEN AT THE SAME TIME! Andrea

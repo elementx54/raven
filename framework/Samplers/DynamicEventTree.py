@@ -316,7 +316,7 @@ class DynamicEventTree(Grid):
     if not index:
       index = len(self.endInfo)-1
     try:
-      parentCondPb = self.endInfo[index]['parentNode'].get('conditionalPbr')
+      parentCondPb = self.endInfo[index]['parentNode'].get('conditionalPb')
       if not parentCondPb:
         parentCondPb = 1.0
     except KeyError:
@@ -442,8 +442,7 @@ class DynamicEventTree(Grid):
     self.inputInfo['endTimeStep'               ] = 0
     self.inputInfo['RAVEN_parentID'            ] = "None"
     self.inputInfo['RAVEN_isEnding'            ] = True
-    self.inputInfo['conditionalPb'             ] = [1.0]
-    self.inputInfo['conditionalPbr'            ] = 1.0
+    self.inputInfo['conditionalPb'            ] = 1.0
     self.inputInfo['happenedEvent'             ] = False
     for key in self.branchProbabilities.keys():
       self.inputInfo['initiatorDistribution'].append(self.toBeSampled[key])
@@ -461,8 +460,9 @@ class DynamicEventTree(Grid):
       for precSample in precSampled:
         self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
         self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+    self.inputInfo['PointProbability' ] = pointPb
+    self.inputInfo['ProbabilityWeight'] = pointPb
     self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
 
     if(self.maxSimulTime):
@@ -565,11 +565,11 @@ class DynamicEventTree(Grid):
       subGroup.add('branchChangedParam',branchParams)
       # add conditional probability
       if self.branchCountOnLevel != 1:
-        subGroup.add('conditionalPbr',condPbC)
+        subGroup.add('conditionalPb',condPbC)
         subGroup.add('branchChangedParamValue',branchChangedParamValue)
         subGroup.add('branchChangedParamPb',branchChangedParamPb)
       else:
-        subGroup.add('conditionalPbr',condPbUn)
+        subGroup.add('conditionalPb',condPbUn)
         subGroup.add('branchChangedParamValue',branchChangedParamValue)
         subGroup.add('branchChangedParamPb',branchChangedParamPb)
       # add initiator distribution info, start time, etc.
@@ -594,7 +594,7 @@ class DynamicEventTree(Grid):
       self.inputInfo = {'prefix':rname.encode(),'endTimeStep':endInfo['endTimeStep'],
                 'branchChangedParam':subGroup.get('branchChangedParam'),
                 'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
-                'conditionalPb':subGroup.get('conditionalPbr'),
+                'conditionalPb':subGroup.get('conditionalPb'),
                 'startTime':endInfo['parentNode'].get('endTime'),
                 'RAVEN_parentID':subGroup.get('parent'),
                 'RAVEN_isEnding':True}
@@ -645,7 +645,8 @@ class DynamicEventTree(Grid):
         for precSample in precSampled:
           self.inputInfo['SampledVars'  ].update(precSample['SampledVars'])
           self.inputInfo['SampledVarsPb'].update(precSample['SampledVarsPb'])
-      self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditionalPbr')
+      pointPb = reduce(mul,[it for sub in [pre['SampledVarsPb'].values() for pre in precSampled ] for it in sub] if precSampled else [1.0])
+      self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
       # Add the new input path into the RunQueue system
