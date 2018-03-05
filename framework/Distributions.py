@@ -3369,7 +3369,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, variable, string, the variable id
       @ Out, inverseMarginal, float, the marginal cdf value at coordinate x
     """
-    if (x > 0.0) and (x < 1.0):
+    if (x >= 0.0) and (x <= 1.0):
       if self.method == 'pca':
         inverseMarginal = self._distribution.inverseMarginalForPCA(x)
       elif self.method == 'spline':
