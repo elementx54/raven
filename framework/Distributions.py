@@ -2662,10 +2662,9 @@ class NDimensionalDistributions(Distribution):
       @ In, variable, int, the variable id
       @ Out, result.x, float, the marginal cdf value at coordinate x
     """
-
-    fun = lambda cdfVal,val,var: abs(val - self._distribution.inverseMarginal(cdfVal[0], var))
-    result = scipy.optimize.differential_evolution(fun,([sys.float_info.min,1.-sys.float_info.min],),args=(x,variable))
-    return result.x[0]
+    fun = lambda cdfVal,val,var: abs(val - self._distribution.inverseMarginal(cdfVal, var))
+    result = scipy.optimize.minimize_scalar(fun,bounds=[sys.float_info.min,1.-sys.float_info.min],args=(x,variable),method='bounded')
+    return result.x
 
 DistributionsCollection.addSub(NDimensionalDistributions.getInputSpecification())
 
