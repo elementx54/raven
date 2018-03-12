@@ -931,16 +931,34 @@ class DynamicEventTree(Grid):
       # Here it is stored all the info regarding the DET => we create the info for all the
       # branchings and we store them
       self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
-    for key in self.branchProbabilities.keys():
-      self.branchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
-    for key in self.branchValues.keys():
-      self.branchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
 
+    initBranchProbabilities = copy.copy(self.branchProbabilities)
+    initBranchValues        = copy.copy(self.branchValues)
+    for key in self.branchProbabilities.keys():
+      if self.variables2distributionsMapping[key]['totDim'] > 1:
+        # NDimensional Distrubutions (inverse Marginal CDF)
+        initBranchValues[key] = [self.distDict[key].inverseMarginalDistribution(float(self.branchProbabilities[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchProbabilities[key]))]
+      else:
+        # 1Dimensional Distributions (inverse CDF)
+        initBranchValues[key] = [self.distDict[key].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
+    for key in self.branchValues.keys():
+      #self.distDict[variable].inverseMarginalDistribution(coordinatesPlusOne[variable] ,self.variables2distributionsMapping[key]['dim']-1)
+      if self.variables2distributionsMapping[key]['totDim'] > 1:
+        # NDimensional Distrubutions (Marginal CDF)
+        initBranchProbabilities[key] = [self.distDict[key].marginalDistribution(float(self.branchValues[key][index]),self.variables2distributionsMapping[key]['dim']-1) for index in range(len(self.branchValues[key]))]
+      else:
+        # 1Dimensional Distributions (CDF)
+        initBranchProbabilities[key] = [self.distDict[key].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
+    self.branchValues.update(initBranchValues)
+    self.branchProbabilities.update(initBranchProbabilities)
     for key in self.branchValues.keys():
       # add the last forced branch (CDF=1)
       if 1.0 not in self.branchProbabilities[key]:
         self.branchProbabilities[key].append( 1.0 )
-        self.branchValues[key].append( self.distDict[key].ppf(1.0) )
+        if self.variables2distributionsMapping[key]['totDim'] > 1:
+          self.branchValues[key].append(self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1) )
+        else:
+          self.branchValues[key].append( self.distDict[key].ppf(1.0) )
     self.limit = sys.maxsize
     # add expected metadata
     self.addMetaKeys(*['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])
