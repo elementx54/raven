@@ -618,9 +618,13 @@ class MAAP5(GenericCode):
       ############
       maxTimer=max(dictTimer.values()) #maxTimer is the time of occurrence of the last branching condition
       for index in range(len(dictTimer.values())):
-        if dictTimer.values()[index]==maxTimer and dictTimer.values()[index]!= -1 and dictTimer.values()[index]!=timeFloat.tolist()[0] : indexVector.append(index) #indexVector contain the indexes of the corresponding position in dictTimer of all the branching conditions ocurring at the same time
-      if len(indexVector) > 1: raise IOError('Branch must occur at different times. Branches occurring at the same time are those characterized by: ', [dictTimer.keys()[indexes] for indexes in indexVector]) #if len(indexVector) is > 1, more than one branching condition is occurring
-
+        if dictTimer.values()[index]==maxTimer and dictTimer.values()[index]!= -1 and dictTimer.values()[index]!=timeFloat.tolist()[0] :
+          indexVector.append(index) #indexVector contain the indexes of the corresponding position in dictTimer of all the branching conditions ocurring at the same time
+      if len(indexVector) > 1:
+        warnings.warn('Branch must occur at different times. Branches occurring at the same time are those characterized by: ' + ', '.join(dictTimer.keys()) +'. We take the first one '+str(dictTimer.keys()[indexVector[0]]))
+        indexVector      = [indexVector[0]]
+        dictTimer        = {dictTimer.items()[indexVector[0]][0]: dictTimer.items()[indexVector[0]][1]}
+        dictTimeHappened = [dictTimeHappened[0]]
       #if any([dictTimeHappened.count(value) > 1 for value in dictTimer.values()]): raise IOError('Branch must occur at different times')
       ############
       key1 = max(dictTimer.values())
