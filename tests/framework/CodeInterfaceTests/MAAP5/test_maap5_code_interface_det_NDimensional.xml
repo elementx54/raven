@@ -21,7 +21,7 @@
     </revisions>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/MAAP5/MAAP5_DET_ND_dist_test</WorkingDir>
+    <WorkingDir>MAAP5_DET_ND_dist_test</WorkingDir>
     <Sequence>testDummyStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -49,7 +49,7 @@
       <NDInverseWeight name='testND'>
           <p>2</p>
           <dataFilename type='PDF'>dist.txt</dataFilename>
-          <workingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/MAAP5/MAAP5_DET_ND_dist_test</workingDir>
+          <workingDir>MAAP5_DET_ND_dist_test</workingDir>
       </NDInverseWeight>
   </Distributions>
 
@@ -82,7 +82,7 @@
   </Steps>
 
   <DataObjects>
-    <HistorySet name="Temporal_Evolution" hierarchical="true">
+    <HistorySet name="Temporal_Evolution" hierarchical="false">
       <Input>TIMELOCA</Input>
       <Output>TIME, PPS, PSGGEN(1), ZWDC2SG(1), WWTOTFW(1)</Output>
       <options>
