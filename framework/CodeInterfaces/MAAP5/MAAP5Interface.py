@@ -235,7 +235,7 @@ class MAAP5(GenericCode):
     parameterBlock=False
     self.paramDict={} #this dictionary contains for the user defined parameters and their corresponding initialization value
     #####
-    for line in lines:
+    for cnt,line in enumerate(lines):
     #####
       if 'PARAMETER CHANGE' in line: parameterBlock=True
       if parameterBlock and '=' in line:
@@ -255,8 +255,8 @@ class MAAP5(GenericCode):
       for cont, var in enumerate(self.DETsampledVars):
         var = var.encode('utf8')
         branchingMarker=str('C Branching '+var)
-        if branchingMarker in line: #branching timer marker
-          # print("branching Marker", branchingMarker)
+        if branchingMarker.strip() == ' '.join(line.split()).strip():
+          #branching timer marker
           block[cont] = True
         if (str('SET TIMER') in line) and block[cont]:
           found[cont] = True
