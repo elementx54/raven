@@ -217,6 +217,8 @@ class DynamicEventTree(Grid):
     # set runEnded and running to true and false respectively
     parentNode.add('runEnded',True)
     parentNode.add('running',False)
+    if parentNode.get("name") in [ 'det_1-2-2', 'det_1-2-1']:
+      print("lupo")
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
@@ -283,6 +285,8 @@ class DynamicEventTree(Grid):
           pb = 1.0
         else:
           pb = self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]
+        if pb == 0:
+          print("aaaaa")
         endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0 - pb
         endInfo['branchChangedParams'][key]['associatedProbability'] = [pb]
 
@@ -317,8 +321,8 @@ class DynamicEventTree(Grid):
       index = len(self.endInfo)-1
     try:
       parentCondPb = self.endInfo[index]['parentNode'].get('conditionalPb')
-      if not parentCondPb:
-        parentCondPb = 1.0
+      if parentCondPb is None:
+        self.raiseAnError(Exception, "parent node conditional pb not found. It should not happen!!!")
     except KeyError:
       parentCondPb = 1.0
     # for all the branches the conditional pb is computed
