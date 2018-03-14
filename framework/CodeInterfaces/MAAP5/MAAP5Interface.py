@@ -319,10 +319,11 @@ class MAAP5(GenericCode):
     timeCsv=dataParam['TIME']
 
     for param in self.paramDict.keys(): #based on the values assumed by the user defined variables in the current branch the corresponding dictionary is updated.
-      listTimeFloat=list(timeCsv)
-      [float(item) for item in listTimeFloat]
+      listTimeFloat=list([float(item) for item in timeCsv])
       timeValue=float(restartTimeNew)
       index=min(range(len(listTimeFloat)), key=lambda i: abs(listTimeFloat[i]-timeValue)) #since timeValue does not necessarily correspond to a time in TIME vector, this way the closest time is taken
+      if listTimeFloat[index] > timeValue and index !=0:
+        index -= 1
       self.paramDict[param]=str(dataParam[param][index])
 
     self.includeUpdate(currentInputFiles)
