@@ -308,6 +308,7 @@ class DynamicEventTree(Grid):
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue:
       self._createRunningQueue(model,myInput)
+    self._endJobRunnable = len(self.RunQueue['identifiers'])
     return True
 
   def computeConditionalProbability(self,index=None):
