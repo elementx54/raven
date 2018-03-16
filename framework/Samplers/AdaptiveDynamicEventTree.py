@@ -295,8 +295,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       subGroup.add('branchChangedParam',branchParams)
       subGroup.add('branchChangedParamValue',branchChangedParamValue)
       subGroup.add('branchChangedParamPb',branchChangedParamPb)
-    else:
-      pass
     # add conditional probability
     subGroup.add('conditionalPb',condPbC)
     # add initiator distribution info, start time, etc.
@@ -309,6 +307,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     subGroup.add('running',False)
     subGroup.add('queue',True)
     subGroup.add('completedHistory', False)
+    subGroup.add('happenedEvent', True)
+    subGroup.add('triggeredVariable',info['parentNode'].get('triggeredVariable'))
     # Append the new branch (subgroup) info to the parentNode in the tree object
     info['parentNode'].appendBranch(subGroup)
     # Fill the values dictionary that will be passed into the model in order to create an input
@@ -318,6 +318,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
               'branchChangedParamValue':subGroup.get('branchChangedParamValue'),
               'conditionalPb':subGroup.get('conditionalPb'),
               'startTime':info['parentNode'].get('endTime'),
+              'happenedEvent':subGroup.get('happenedEvent'),
+              'triggeredVariable':subGroup.get('triggeredVariable'),
               'RAVEN_parentID':subGroup.get('parent'),
               'RAVEN_isEnding':True}
     # add the newer branch name to the map

@@ -217,8 +217,8 @@ class DynamicEventTree(Grid):
     # set runEnded and running to true and false respectively
     parentNode.add('runEnded',True)
     parentNode.add('running',False)
-    if parentNode.get("name") in [ 'det_1-2-2', 'det_1-2-1']:
-      print("lupo")
+
+
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
@@ -285,8 +285,6 @@ class DynamicEventTree(Grid):
           pb = 1.0
         else:
           pb = self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]
-        if pb == 0:
-          print("aaaaa")
         endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0 - pb
         endInfo['branchChangedParams'][key]['associatedProbability'] = [pb]
 
@@ -295,20 +293,24 @@ class DynamicEventTree(Grid):
     # The branchedLevel counter is updated
     if branchedLevel[endInfo['branchDist']] < len(self.branchProbabilities[endInfo['branchDist']]):
       branchedLevel[endInfo['branchDist']] += 1
+
     # Append the parent branchedLevel (updated for the new branch/es) in the list tha contains them
     # (it is needed in order to avoid overlapping among info coming from different parent calculations)
     # When this info is used, they are popped out
     self.branchedLevel.append(branchedLevel)
+
     # Append the parent end info in the list tha contains them
     # (it is needed in order to avoid overlapping among info coming from different parent calculations)
     # When this info is used, they are popped out
     self.endInfo.append(endInfo)
+
     # Compute conditional probability
     self.computeConditionalProbability()
+
     # Create the inputs and put them in the runQueue dictionary (if genRunQueue is true)
     if genRunQueue:
       self._createRunningQueue(model,myInput)
-    self._endJobRunnable = len(self.RunQueue['identifiers'])
+      self._endJobRunnable = len(self.RunQueue['identifiers'])
     return True
 
   def computeConditionalProbability(self,index=None):
