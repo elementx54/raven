@@ -308,11 +308,7 @@ class MAAP5(GenericCode):
 
     csvSimulationFilesParam=[]
     filePrefixWithPathParam=os.path.join(parentFolderPath,baseInp) #path of the csv file of the parent folder containing the user defined variables
-
-#    print('###--filePrefixWithPathParam',filePrefixWithPathParam)
     csvParam=glob.glob(filePrefixWithPathParam+".d"+"*.csv") #list of MAAP output files with the evolution of continuous variables
-#    print('###--csvParam',csvParam)
-
     mergeCSV=csvU.csvUtilityClass(csvParam,1,";",True)
     dataParam={}
     dataParam=mergeCSV.mergeCsvAndReturnOutput({'variablesToExpandFrom':['TIME'],'returnAsDict':True})

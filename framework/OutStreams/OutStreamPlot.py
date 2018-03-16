@@ -1284,6 +1284,8 @@ class OutStreamPlot(OutStreamManager):
           data['y']=np.empty(0)
           for index in range(len(self.outStreamTypes)):
             for key in self.xValues[index].keys():
+              print(data['x'])
+              print(self.xValues[index][key])
               data['x'] = np.append(data['x'],self.xValues[index][key][0][-1])
               if self.dim == 3:
                 data['y'] = np.append(data['y'],self.yValues[index][key][0][-1])
