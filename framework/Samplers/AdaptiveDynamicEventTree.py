@@ -134,6 +134,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     """
     if not self.startAdaptive:
       self.startAdaptive = True
+      if len(self.lastOutput) == 0:
+        self.startAdaptive = False
+        return
       for treer in self.TreeInfo.values():
         for _ in treer.iterProvidedFunction(self._checkIfRunning):
           self.startAdaptive = False
