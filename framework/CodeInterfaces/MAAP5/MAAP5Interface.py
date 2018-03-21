@@ -302,13 +302,22 @@ class MAAP5(GenericCode):
     timeRestartWrit=[]#list of all the time when restart file has been written in the parent branch
     for lineSumm in linesSummary:
       if 'RESTART FILE WRITTEN AT THIS TIME\n' in lineSumm: timeRestartWrit.append(lineSumm.split()[0])
-    restartTimeNew=timeRestartWrit[-2] #restart time is the second-to-last time when a restart file has been written
+
+    if (float(timeRestartWrit[-1])-float(timeRestartWrit[-2])) < 0.3: #modified by CP - 17/03/2018 - due to error with different restart file written in 0.1 s
+        if self.printDebug :print('difference between last restart and first-to-last restart is lower than 0.3 s')
+        if len(timeRestartWrit) > 2: restartTimeNew=timeRestartWrit[-3] #modified by CP - 17/03/2018 - to take the second-to-last is important to make sure that at least more than two restart are written
+        else: raise IOError('Change print interval!')
+    else: restartTimeNew=timeRestartWrit[-2] #restart time is the second-to-last time when a restart file has been written
 ####################################
 # Parameters values from the parent branches are saved in the self.paramDict dictionary and the include file of the current branch is updated with these values
 
     csvSimulationFilesParam=[]
     filePrefixWithPathParam=os.path.join(parentFolderPath,baseInp) #path of the csv file of the parent folder containing the user defined variables
+
+#    print('###--filePrefixWithPathParam',filePrefixWithPathParam)
     csvParam=glob.glob(filePrefixWithPathParam+".d"+"*.csv") #list of MAAP output files with the evolution of continuous variables
+#    print('###--csvParam',csvParam)
+
     mergeCSV=csvU.csvUtilityClass(csvParam,1,";",True)
     dataParam={}
     dataParam=mergeCSV.mergeCsvAndReturnOutput({'variablesToExpandFrom':['TIME'],'returnAsDict':True})
@@ -411,6 +420,9 @@ class MAAP5(GenericCode):
     for line in lines:
       lineNumber=lineNumber+1
       if 'C Branching '+str((self.branch[Kwargs['RAVEN_parentID']])[0]) in line: block=True
+      if Kwargs['branchChangedParam']==None: #modified by VR 17/03/18 due to an error in Adaptive DET sampler
+        block=False
+        break
       if n==len(Kwargs['branchChangedParam']):
         block=False
         break
@@ -763,7 +775,7 @@ class MAAP5(GenericCode):
     lines=fileobject.readlines()
     fileobject.close()
     #print('lines=',lines)
-    #for line in lines: print('---',line,'C Stop Simulation condition' in line) ##CP - 24/1/2018
+    #for line in lines: print('---',line,'C Stop Simulation condition' in line) ##modified by CP - 24/1/2018
     currentFolder=os.path.dirname(inp)
     currentFolder=currentFolder.split('/')[-1]
     parents=[]
