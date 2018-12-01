@@ -77,7 +77,7 @@ class ExternalModel(Dummy):
     self.modelVariableValues      = {}                                          # dictionary of variable values for the external module imported at runtime
     self.modelVariableType        = {}                                          # dictionary of variable types, used for consistency checks
     self.listOfRavenAwareVars     = []                                          # list of variables RAVEN needs to be aware of
-    self._availableVariableTypes = ['float','bool','int','ndarray',
+    self._availableVariableTypes = ['float','bool','int','ndarray','str',
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
