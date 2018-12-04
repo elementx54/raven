@@ -54,9 +54,21 @@ class myHS2PS(PostProcessorInterfaceBase):
     outputDic['dims'] = {}
 
     for key2 in inputDic[0]['data'].keys():
+      #print('DEBUG inputDic: ',inputDic[0]['data'][key2], type(inputDic[0]['data'][key2]))
+      #print('DEBUG inputDic with [0]:   ',inputDic[0]['data'][key2][0], type(inputDic[0]['data'][key2][0]))
       outputDic['data'].update({key2 : inputDic[0]['data'][key2][0]})
+      outputDic['dims'][key2] = []
 
-    outputDic['data'].update({'kcTF' : outputDic['data']['kTF'],
-      'kcTM' : outputDic['data']['kTM']})
+    outputDic['data'].update({'kcTF' : outputDic['data']['avg_fg_temp'],
+      'kcTM' : outputDic['data']['avg_ms_temp'],
+      'kcTrefl' : outputDic['data']['avg_refltemp'],
+      'kcTcore' : outputDic['data']['avg_coretemp']})
+    outputDic['dims'].update({'kcTF' : [],
+      'kcTM' : [],
+      'kcTrefl' : [],
+      'kcTcore' : []})
+
+    #print('DEBUG outputDic: ',outputDic)
+    #print("DEBUG outputDic['data']",outputDic['data'])
 
     return outputDic

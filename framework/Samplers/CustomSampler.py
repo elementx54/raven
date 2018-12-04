@@ -229,6 +229,8 @@ class CustomSampler(ForwardSampler):
           sourceName = self.nameInSource[subVar]
           # get the value(s) for the variable for this realization
           self.values[subVar] = rlz[sourceName].values
+          if isinstance(self.values[subVar], np.ndarray) and self.values[subVar].shape == ():
+            self.values[subVar] = float(self.values[subVar])
           # set the probability weight due to this variable (default to 1)
           pbWtName = 'ProbabilityWeight-'
           self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
